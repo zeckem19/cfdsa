@@ -14,7 +14,7 @@ const DB_HOST = process.env.DB_HOST || config.db_host || 'localhost'
 const DB_PORT = parseInt(process.env.DB_PORT) || config.db_port || 3306
 const DB_USER = process.env.DB_USER || config.db_user || 'fred'
 const DB_PASSWORD = process.env.DB_PASSWORD || config.db_password || 'fred'
-const INSTANCE_IP_ADDRESS = process.env.INSTANCE_IP_ADDRESS 'ip not set'
+const INSTANCE_IP_ADDRESS = process.env.INSTANCE_IP_ADDRESS || 'ip not set'
 
 const PORT = parseInt(process.argv[2]) || config.app_port || parseInt(process.env.APP_PORT) || 3000
 
@@ -80,7 +80,7 @@ app.get(['/api/customers', '/customers', '/'], (req, resp, next) => {
 			resp.status(200)
 			resp.format({
 				'text/html': () => {
-					resp.render('customers.hbs', { customer: result })
+					resp.render('customers.hbs', { customer: result, ip_address: INSTANCE_IP_ADDRESS })
 				},
 				'application/json': () => {
 					resp.json(result)
@@ -103,7 +103,7 @@ app.get(['/api/customer/:id', '/customer/:id'], (req, resp) => {
 				resp.status(200)
 				resp.format({
 					'text/html': () => {
-						resp.render('customer.hbs', { customer: result[0], ip_address: INSTANCE_IP_ADDRESS })
+						resp.render('customer.hbs', { customer: result[0] })
 					},
 					'application/json': () => {
 						resp.json(result[0])
