@@ -20,7 +20,7 @@ spec:
       spec:
          containers:
          - name: nwdb
-           image: chukmunnlee/northwind-db:v1
+           image: stackupiss/northwind-db:v1
            imagePullPolicy: IfNotPresent
            ports:
            - containerPort: 3306
