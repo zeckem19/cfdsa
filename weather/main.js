@@ -41,6 +41,13 @@ app.get('/health', (req, resp) => {
 	resp.status(200).json({ time: Date.now() })
 })
 
+app.get('/config', (req, resp) => {
+	resp.status(200).json({
+		port: APP_PORT,
+		appid: APP_ID
+	})
+});
+
 app.use((req, resp) => {
 	getWeather('singapore', resp)
 });
