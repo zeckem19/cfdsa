@@ -41,6 +41,14 @@ app.get('/health', (req, resp) => {
 	resp.status(200).json({ time: Date.now() })
 })
 
+app.get('/ready', (req, resp) => {
+	if (APP_ID != 'not set')
+		return (
+			resp.status(200).json({ uptime: Date.now() - startTime })
+		);
+	resp.status(400).json({});
+})
+
 app.get('/config', (req, resp) => {
 	resp.status(200).json({
 		port: APP_PORT,
