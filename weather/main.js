@@ -44,7 +44,8 @@ app.get('/health', (req, resp) => {
 app.get('/ready', (req, resp) => {
 	if (APP_ID != 'not set')
 		return (
-			resp.status(200).json({ uptime: Date.now() - startTime })
+			resp.status(200)
+				.json({ uptime: Date.now() - startTime })
 		);
 	resp.status(400).json({});
 })
