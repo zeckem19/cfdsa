@@ -5,6 +5,9 @@ const express = require('express')
 
 const app = express()
 
+//Environment variables to configure the application
+//APP_PORT for the port that the application listens on
+//APP_ID is the API key from openweathermap.org
 const APP_PORT = parseInt(process.argv[2]) || parseInt(process.env.APP_PORT) ||  3000
 const APP_ID = process.env.APP_ID || "not set"
 

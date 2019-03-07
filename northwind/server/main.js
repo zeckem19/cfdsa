@@ -8,8 +8,15 @@ const hbs = require('express-handlebars')
 const mysql = require('mysql');
 const express = require('express');
 
+//JSON file to configure the application
 const config = require('./config/config.json')
 
+//Or use environment variables to configure the application
+//DB_HOST is the host where MySQL is running
+//DB_PORT is the port that MySQL is listening on
+//DB_USER is the user id used to access MySQL
+//DB_PASSWORD is the corresponding password
+//INSTANCE_IP_ADDRESS is the IP address of server that is running  this application
 const DB_HOST = process.env.DB_HOST || config.db_host || 'localhost'
 const DB_PORT = parseInt(process.env.DB_PORT) || config.db_port || 3306
 const DB_USER = process.env.DB_USER || config.db_user || 'fred'
