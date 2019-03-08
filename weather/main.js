@@ -8,8 +8,10 @@ const app = express()
 //Environment variables to configure the application
 //APP_PORT for the port that the application listens on
 //APP_ID is the API key from openweathermap.org
+//APP_DEFAULT_CITY is the default city 
 const APP_PORT = parseInt(process.argv[2]) || parseInt(process.env.APP_PORT) ||  3000
-const APP_ID = process.env.APP_ID || "not set"
+const APP_ID = process.env.APP_ID || 'not set'
+const DEFAULT_CITY = process.env.APP_DEFAULT_CITY 
 
 app.engine('hbs', hbs())
 app.set('view engine', 'hbs')
@@ -34,7 +36,7 @@ const getWeather = (city, resp) => {
 }
 
 app.get([ '/', '/weather' ], (req, resp) => {
-	getWeather('singapore', resp)
+	getWeather(DEFAULT_CITY, resp)
 })
 app.get('/weather/:city', (req, resp) => {
 	getWeather(req.params.city, resp)
@@ -61,7 +63,7 @@ app.get('/config', (req, resp) => {
 });
 
 app.use((req, resp) => {
-	getWeather('singapore', resp)
+	getWeather(DEFAULT_CITY, resp)
 });
 
 app.listen(APP_PORT, () => {
