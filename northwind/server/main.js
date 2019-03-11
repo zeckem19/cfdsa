@@ -23,6 +23,7 @@ const DB_USER = process.env.DB_USER || config.db_user || 'fred'
 const DB_PASSWORD = process.env.DB_PASSWORD || config.db_password || 'fred'
 const INSTANCE_IP_ADDRESS = process.env.INSTANCE_IP_ADDRESS || 'ip not set'
 
+//APP_PORT is the TCP port that this application listens to
 const PORT = parseInt(process.argv[2]) || config.app_port || parseInt(process.env.APP_PORT) || 3000
 
 const mkQuery = function(sql, pool) {
