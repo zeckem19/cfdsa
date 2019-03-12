@@ -17,11 +17,17 @@ const config = require('./config/config.json')
 //DB_USER is the user id used to access MySQL
 //DB_PASSWORD is the corresponding password
 //INSTANCE_IP_ADDRESS is the IP address of server that is running  this application
+//APP_RETRIES the number of retries / ping to the database before failing
+//APP_RETRY_INTERVAL inverval in seconds between retries
+//APP_EXIT_ON_ERROR if application should exit when it cannot ping database
 const DB_HOST = process.env.DB_HOST || config.db_host || 'localhost'
 const DB_PORT = parseInt(process.env.DB_PORT) || config.db_port || 3306
 const DB_USER = process.env.DB_USER || config.db_user || 'fred'
 const DB_PASSWORD = process.env.DB_PASSWORD || config.db_password || 'fred'
 const INSTANCE_IP_ADDRESS = process.env.INSTANCE_IP_ADDRESS || 'ip not set'
+const RETRIES = parseInt(process.env.APP_RETRIES) || config.app_retries || 3
+const RETRY_INTERVAL = (parseInt(process.env.APP_RETRY_INTERVAL) || config.app_retry_interval || 15) * 1000
+const EXIT_ON_ERROR = !!process.env.APP_EXIT_ON_ERROR || false;
 
 //APP_PORT is the TCP port that this application listens to
 const PORT = parseInt(process.argv[2]) || config.app_port || parseInt(process.env.APP_PORT) || 3000
@@ -52,7 +58,10 @@ const pool = mysql.createPool({
 });
 
 let appReady = false;
+let appFailed = false;
 let startTime = 0
+let retries = 0
+let failedMessage = `Cannot connect to database ${DB_HOST} on ${DB_PORT} with user ${DB_USER}`
 
 let isAngular = false;
 try {
@@ -73,7 +82,6 @@ app.set('views', join(__dirname, 'views'))
 
 app.use(cors());
 app.use(bodyParser.json());
-
 
 app.get(['/api/customers', '/customers', '/'], (req, resp, next) => {
 
@@ -155,11 +163,23 @@ app.get('/ready', (req, resp) => {
 	if (appReady)
 		return (
 			resp.status(200).json({ 
+				failed: false,
 				status: appReady,
 				uptime: Date.now() - startTime
 			})
 		);
-	resp.status(400).json({});
+	else if (appFailed)
+		return (
+			resp.status(500).json({
+				failed: true,
+				status: false,
+				message: failedMessage
+			})
+		);
+	resp.status(503).json({
+		failed: false,
+		status: false
+	});
 })
 
 app.use(express.static(join(__dirname, 'angular')))
@@ -176,13 +196,30 @@ app.listen(PORT, () => {
 		PORT, (new Date()).toString());
 })
 
-pool.getConnection((err, conn) => {
-	if (err)
-		throw err;
-	conn.ping((err) => {
-		conn.release()
-		if (err)
-			throw err
-		appReady = true;
+setTimeout(function pingDB() {
+	pool.getConnection((err, conn) => {
+		if (err) {
+			appFailed = (++retries >= RETRIES)
+			if (!appFailed)
+				setTimeout(pingDB, RETRY_INTERVAL)
+			else {
+				console.error('Application failed. Cannot ping database');
+				if (EXIT_ON_ERROR)
+					process.exit(1);
+			}
+			return
+		}
+		conn.ping((err) => {
+			conn.release()
+			if (err) {
+				appFailed = true;
+				failedMessage = err;
+				if (EXIT_ON_ERROR)
+					process.exit(1);
+			}
+			appReady = true;
+		})
 	})
-})
+
+}, RETRY_INTERVAL) 
+
