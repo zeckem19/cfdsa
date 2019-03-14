@@ -3,6 +3,37 @@ Container for Deployment and Scaling Apps
 
 ## Enabling Autoscaling on DigitalOcean
 
+## Installing Metrics Server
+
+### Clone metrics-server repository
+`git clone https://github.com/kubernetes-incubator/metrics-server.git`
+
+### Install metrics-server
+`cd metrics-server/deploy`
+
+`kubectl apply -f 1.8+`
+
+### Update metrics-server Deployment
+Edit `metrics-server` deployment to 
+
+`kubectl edit deploy/metrics-server`
+
+Under `containers:` look for the image `k8s.gcr.io/metrics-server-amd64:vx.x.x` where `x.x.x` is the version number. Add the following lines
+
+```yaml
+containers:
+- image: k8s.gcr.io/metrics-server-amd64.vx.x.x
+  command:
+  - /metrics-server
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP
+  - --logtostderr
+```
+
+Save and exit
+Ref [SO: Unable to get pod metrics to use in horizontal pod autoscaling -Kubernetes](https://stackoverflow.com/questions/53538012/unable-to-get-pod-metrics-to-use-in-horizontal-pod-autoscaling-kubernetes)
+
+## Installing Grafana, Prometheus and Heapster (deprecating :-))
 ### Download the following YAML files
 `curl https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/grafana.yaml > grafana.yaml`
 
