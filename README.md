@@ -8,17 +8,10 @@ Container for Deployment and Scaling Apps
 ### Clone metrics-server repository
 `git clone https://github.com/kubernetes-incubator/metrics-server.git`
 
-### Install metrics-server
-`cd metrics-server/deploy`
-
-`kubectl apply -f 1.8+`
-
-### Update metrics-server Deployment
-Edit `metrics-server` deployment to 
-
-`kubectl edit deploy/metrics-server`
-
-Under `containers:` look for the image `k8s.gcr.io/metrics-server-amd64:vx.x.x` where `x.x.x` is the version number. Add the following lines
+### Update metrics-server pod
+Edit `metrics-server/deploy/1.8+/metrics-server-deployment.yaml`. 
+Under `containers:` look for the image `k8s.gcr.io/metrics-server-amd64:vx.x.x` where 
+`x.x.x` is the version number. Add the following lines
 
 ```yaml
 containers:
@@ -31,7 +24,17 @@ containers:
 ```
 
 Save and exit
+
 Ref [SO: Unable to get pod metrics to use in horizontal pod autoscaling -Kubernetes](https://stackoverflow.com/questions/53538012/unable-to-get-pod-metrics-to-use-in-horizontal-pod-autoscaling-kubernetes)
+
+### Install metrics-server
+`cd metrics-server/deploy`
+
+`kubectl apply -f 1.8+`
+
+Verify that metrics-server is deploy with the following
+
+`kubectl get svc/metrics-server -n kube-system`
 
 ## Installing Grafana, Prometheus and Heapster (deprecating :-))
 ### Download the following YAML files
@@ -68,3 +71,5 @@ monitoring-influxdb is running at https://XXXX.k8s.ondigitalocean.com/api/v1/nam
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 Reference from [Autoscale an application on Kubernetes Cluster](https://developer.ibm.com/tutorials/autoscale-application-on-kubernetes-cluster)
+
+## Installing WebUI
