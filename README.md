@@ -1,5 +1,4 @@
-# cfdasa
-Container for Deployment and Scaling Apps
+# CFDSA - Container for Deployment and Scaling Apps
 
 ## Enabling Autoscaling on DigitalOcean
 
@@ -30,6 +29,24 @@ Ref [SO: Unable to get pod metrics to use in horizontal pod autoscaling -Kuberne
 ### Install metrics-server
 `cd metrics-server/deploy`
 
+Edit `1.8+/metrics-server-deployment.yaml`. Look for the following line:
+
+`image: k8s.gcr.io/metrics-server-amd64:v0.3.1`
+
+and perform the following edits
+
+```
+			containers:
+      	- name: metrics-server
+        	  image: k8s.gcr.io/metrics-server-amd64:v0.3.1
+        	  imagePullPolicy: Always
+			  # add the lines below
+        	  command:
+        	  - /metrics-server
+        	  - --kubelet-insecure-tls
+        	  - --kubelet-preferred-address-types=InternalIP
+```
+
 `kubectl apply -f 1.8+`
 
 Verify that metrics-server is deploy with the following
@@ -45,6 +62,26 @@ Verify that metrics-server is deploy with the following
 `curl https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/influxdb.yaml > influxdb.yaml`
 
 `curl https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/rbac/heapster-rbac.yaml > heapster-rbac.yaml`
+
+### Update heapster.yaml
+
+Edit `heapster.yaml`.  Look for the following line:
+
+`image: k8s.gcr.io/heapster-amd64:v1.5.4`
+
+and perform the following edits:
+
+```
+			containers:
+			- name: heapster
+			  image: k8s.gcr.io/heapster-amd64:v1.5.4
+			  imagePullPolicy: IfNotPresent
+			  command:
+			  - /heapster
+			  # modify the above line to the one below
+			  - --source=kubernetes:https://kubernetes.default?useServiceAccount=true&kubeletHttps=true&kubeletPort=10250&insecure=true
+			  - --sink=influxdb:http://monitoring-influxdb.kube-system.svc:8086
+```
 
 ### Create the resources in the specified order 
 `kubectl create -f grafana.yaml`
