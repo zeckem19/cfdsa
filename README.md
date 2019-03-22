@@ -36,15 +36,15 @@ Edit `1.8+/metrics-server-deployment.yaml`. Look for the following line:
 and perform the following edits
 
 ```
-			containers:
-      	- name: metrics-server
-        	  image: k8s.gcr.io/metrics-server-amd64:v0.3.1
-        	  imagePullPolicy: Always
-			  # add the lines below
-        	  command:
-        	  - /metrics-server
-        	  - --kubelet-insecure-tls
-        	  - --kubelet-preferred-address-types=InternalIP
+ontainers:
+ name: metrics-server
+  image: k8s.gcr.io/metrics-server-amd64:v0.3.1
+  imagePullPolicy: Always
+ # add the lines below
+  command:
+  - /metrics-server
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP
 ```
 
 `kubectl apply -f 1.8+`
@@ -72,15 +72,15 @@ Edit `heapster.yaml`.  Look for the following line:
 and perform the following edits:
 
 ```
-			containers:
-			- name: heapster
-			  image: k8s.gcr.io/heapster-amd64:v1.5.4
-			  imagePullPolicy: IfNotPresent
-			  command:
-			  - /heapster
-			  # modify the above line to the one below
-			  - --source=kubernetes:https://kubernetes.default?useServiceAccount=true&kubeletHttps=true&kubeletPort=10250&insecure=true
-			  - --sink=influxdb:http://monitoring-influxdb.kube-system.svc:8086
+containers:
+- name: heapster
+  image: k8s.gcr.io/heapster-amd64:v1.5.4
+  imagePullPolicy: IfNotPresent
+  command:
+  - /heapster
+  # modify the above line to the one below
+  - --source=kubernetes:https://kubernetes.default?useServiceAccount=true&kubeletHttps=true&kubeletPort=10250&insecure=true
+  - --sink=influxdb:http://monitoring-influxdb.kube-system.svc:8086
 ```
 
 ### Create the resources in the specified order 
