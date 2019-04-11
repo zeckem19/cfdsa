@@ -12,20 +12,6 @@ Edit `metrics-server/deploy/1.8+/metrics-server-deployment.yaml`.
 Under `containers:` look for the image `k8s.gcr.io/metrics-server-amd64:vx.x.x` where 
 `x.x.x` is the version number. Add the following lines
 
-```yaml
-containers:
-- image: k8s.gcr.io/metrics-server-amd64.vx.x.x
-  command:
-  - /metrics-server
-  - --kubelet-insecure-tls
-  - --kubelet-preferred-address-types=InternalIP
-  - --logtostderr
-```
-
-Save and exit
-
-Ref [SO: Unable to get pod metrics to use in horizontal pod autoscaling -Kubernetes](https://stackoverflow.com/questions/53538012/unable-to-get-pod-metrics-to-use-in-horizontal-pod-autoscaling-kubernetes)
-
 ### Install metrics-server
 `cd metrics-server/deploy`
 
@@ -35,17 +21,22 @@ Edit `1.8+/metrics-server-deployment.yaml`. Look for the following line:
 
 and perform the following edits
 
-```
-ontainers:
+```yaml
+containers:
  name: metrics-server
-  image: k8s.gcr.io/metrics-server-amd64:v0.3.1
+  image: k8s.gcr.io/metrics-server-amd64:vx.x.x
   imagePullPolicy: Always
  # add the lines below
   command:
   - /metrics-server
   - --kubelet-insecure-tls
   - --kubelet-preferred-address-types=InternalIP
+  - --logtostderr
 ```
+
+Ref [SO: Unable to get pod metrics to use in horizontal pod autoscaling -Kubernetes](https://stackoverflow.com/questions/53538012/unable-to-get-pod-metrics-to-use-in-horizontal-pod-autoscaling-kubernetes)
+
+Install all the resources
 
 `kubectl apply -f 1.8+`
 
@@ -67,14 +58,14 @@ Verify that metrics-server is deploy with the following
 
 Edit `heapster.yaml`.  Look for the following line:
 
-`image: k8s.gcr.io/heapster-amd64:v1.5.4`
+`image: k8s.gcr.io/heapster-amd64:vx.x.x`
 
 and perform the following edits:
 
 ```
 containers:
 - name: heapster
-  image: k8s.gcr.io/heapster-amd64:v1.5.4
+  image: k8s.gcr.io/heapster-amd64:vx.x.x
   imagePullPolicy: IfNotPresent
   command:
   - /heapster
@@ -84,13 +75,13 @@ containers:
 ```
 
 ### Create the resources in the specified order 
-`kubectl create -f grafana.yaml`
-
-`kubectl create -f heapster.yaml`
-
 `kubectl create -f influxdb.yaml`
 
 `kubectl create -f heapster-rbac.yaml`
+
+`kubectl create -f heapster.yaml`
+
+`kubectl create -f grafana.yaml`
 
 ### Verify that the resources have been create
 `kubectl cluster-info`
@@ -110,3 +101,5 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 Reference from [Autoscale an application on Kubernetes Cluster](https://developer.ibm.com/tutorials/autoscale-application-on-kubernetes-cluster)
 
 ## Installing WebUI
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+
