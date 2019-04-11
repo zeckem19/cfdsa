@@ -116,4 +116,25 @@ The WebUI can now be accessed with the following URL
 
 ![WebUI login](https://i.stack.imgur.com/7ZabE.png)
 
+## Installing Nginx Ingress Controller
 
+Instead of having one load balancer per service (for services deployed with type as `LoadBalancer`), we can deploy our own load balancer which we can then configure it to route traffic to one or more services. The following is for DigitalOcean
+
+Create the following 2 resources 
+
+`kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml`
+
+and 
+
+`kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/provider/cloud-generic.yaml`
+
+Verify that a load balancer is provisioned by running the following command
+
+`kubectl get svc -n ingress-nginx`
+
+```
+NAME            TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
+ingress-nginx   LoadBalancer   10.245.17.17   157.230.196.98   80:30077/TCP,443:31512/TCP   21m
+```
+
+Note: `EXTERNAL-IP` will show an external IP address once the load balancer has been deployed. A `<pending>` indicates that the cloud provider is still provisioning the load balancer. You can verify the that the load balancer has indeed been provisioned by checking it in your cloud console.
