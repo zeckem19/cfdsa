@@ -75,13 +75,13 @@ containers:
 ```
 
 ### Create the resources in the specified order 
-`kubectl create -f influxdb.yaml`
+`kubectl apply -f influxdb.yaml`
 
-`kubectl create -f heapster-rbac.yaml`
+`kubectl apply -f heapster-rbac.yaml`
 
-`kubectl create -f heapster.yaml`
+`kubectl apply -f heapster.yaml`
 
-`kubectl create -f grafana.yaml`
+`kubectl apply -f grafana.yaml`
 
 ### Verify that the resources have been create
 `kubectl cluster-info`
@@ -101,5 +101,19 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 Reference from [Autoscale an application on Kubernetes Cluster](https://developer.ibm.com/tutorials/autoscale-application-on-kubernetes-cluster)
 
 ## Installing WebUI
-	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+	
+WebUI in not installed by default. To install Kubernetes' WebUI, go to the [release page](https://github.com/kubernetes/dashboard/releases) and find the latest (or desired version). At the time of writing, the latest version is version 1.10.1. Install with `kubectl apply` 
+
+`kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml`
+
+On a terminal, start a proxy server 
+
+`kubectl proxy`
+
+The WebUI can now be accessed with the following URL
+
+[http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/)
+
+![WebUI login](https://i.stack.imgur.com/7ZabE.png)
+
 
