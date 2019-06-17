@@ -18,8 +18,19 @@ app.set('view engine', 'hbs')
 
 app.get(['/', '/index.html', '/fortune'], (req, resp) => {
 	resp.status(200)
-	resp.type('text/html')
-	resp.render('fortune', { text: getFortune(), layout: false })
+	resp.format({
+		'text/html': () => {
+			resp.type('text/html')
+			resp.render('fortune', { text: getFortune(), layout: false })
+		},
+		'application/json': () => {
+			resp.type('application/json');
+			resp.json({ fortune: getFortune() });
+		},
+		'default': () => {
+			resp.status(406).end();
+		}
+	})
 })
 
 app.get('/health', (req, resp) => {
@@ -32,8 +43,19 @@ app.get(/.*/, express.static(join(__dirname, 'public')));
 
 app.use((req, resp) => {
 	resp.status(404)
-	resp.type('text/html')
-	resp.sendFile(join(__dirname, 'public', '404.html'))
+	resp.format({
+		'text/html': () => {
+			resp.type('text/html')
+			resp.sendFile(join(__dirname, 'public', '404.html'))
+		},
+		'application/json': () => {
+			resp.type('application/json');
+			resp.json({ error: 'not found' })
+		},
+		'default': () => {
+			resp.type('text/plain').end('Not found');
+		}
+	})
 })
 
 app.listen(PORT, () => {
