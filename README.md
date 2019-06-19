@@ -116,6 +116,50 @@ The WebUI can now be accessed with the following URL
 
 ![WebUI login](https://i.stack.imgur.com/7ZabE.png)
 
+### Login to WebUI
+
+Create a service account and give it the `cluster-admin` role (or you can create a role with limited privileges).
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+   name: webui-user
+   namespace: kube-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+
+metadata:
+   name: webui-user
+   namespace: kube-system
+
+roleRef:
+   apiGroup: rbac.authorization.k8s.io
+   kind: ClusterRole
+   name: cluster-admin
+
+subjects:
+- kind: ServiceAccount
+  name: webui-user
+  namespace: kube-system
+
+```
+
+Create the service account `kubectl apply -f sa.yaml` assuming the file is called `sa.yaml`. 
+
+Get the secret for the service account
+
+`kubectl describe sa/webui-user -n kube-system`
+
+Look for `Mountable secrets`. Copy the secret's name. 
+
+`kubectl describe secret/secret_name_here -n kube-system`
+
+Copy the token value and paste it into the 'Enter token' field.
+
 ## Installing Nginx Ingress Controller
 
 Instead of having one load balancer per service (for services deployed with type as `LoadBalancer`), we can deploy our own load balancer which we can then configure it to route traffic to one or more services. The following is for DigitalOcean
