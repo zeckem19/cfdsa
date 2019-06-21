@@ -15,12 +15,11 @@ const f = function(app, bggdb) {
 			.then(result => {
 				if (result.length) {
 					resp.status(200);
-					resp.json(result.map(v => `/game/${v.gid}`))
+					return resp.json(result.map(v => `/game/${v.gid}`))
 				}
-				else {
-					resp.status(404)
-					resp.json({ error: `not found: ${req.query.q}` })
-				}
+
+				resp.status(404)
+				resp.json({ error: `not found: ${req.query.q}` })
 			})
 			.catch(err => {
 				resp.status(500)
@@ -33,17 +32,63 @@ const f = function(app, bggdb) {
 			.then(result => {
 				if (result.length) {
 					resp.status(200)
-					resp.json(result[0]);
-				} else {
-					resp.status(404)
-					resp.json({ error: `game not found: ${err}` })
+					return resp.json(result[0]);
 				}
+
+				resp.status(404)
+				resp.json({ error: `Game not found: ${err}` })
+			})
+			.catch(err => {
+				resp.status(500)
+				resp.json({ error: err })
 			})
 	})
 
 	this.router.get('/game/:gid/comments', (req, resp) => {
-		bggdb.findCommentsByGid([ parseInt(req.params.gid) ])
+
+		const limit = parseInt(req.query.limit) || 20;
+		const offset = parseInt(req.query.offset) || 0;
+		const gid = parseInt(req.params.gid)
+
+		Promise.all([
+			bggdb.findCommentsByGid([ gid, limit, offset ]),
+			bggdb.countCommentsByGid([ gid ])
+		]).then(result => {
+			resp.status(200)
+			resp.json({
+				gameId: gid,
+				total: result[1][0].comment_cnt,
+				offset: offset,
+				limit: limit,
+				comments: result[0].map(v => `/comment/${v.c_id}`)
+			})
+		}).catch(err => {
+			resp.status(500)
+			resp.json({ error: err })
+		})
 	})
+
+	this.router.get('/comment/:cid', (req, resp) => {
+		bggdb.findCommentsByCid([ req.params.cid ])
+			.then(result => {
+				if (result.length) {
+					resp.status(200);
+					return resp.json(result[0])
+				}
+
+				resp.status(404)
+				resp.json({ error: `Comment not found: ${req.params.cid}` })
+
+			}).catch(err => {
+				resp.status(500)
+				resp.json({ error: err })
+			})
+	})
+
+	this.router.use((req, resp) => {
+		resp.status(404)
+		resp.json({ error: `Resource not found: ${req.originalUrl}` })
+	});
 
 	return (this.router);
 }

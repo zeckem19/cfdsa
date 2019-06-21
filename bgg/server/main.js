@@ -29,6 +29,18 @@ app.use('/api', json);
 
 app.get(/.*/, express.static(join(__dirname, 'public')));
 
+app.use((req, resp) => {
+	resp.status(404);
+	resp.format({
+		'text/html': () => {
+			resp.send(`<h1>Not Found</h1><h3>Resource not found: ${req.originalUrl}</h3>`);
+		},
+		'application/json': () => {
+			resp.json({ error: `Resource not found: ${req.originalUrl}` })
+		}
+	})
+})
+
 bggdb.ping()
 	.then(() => {
 		app.listen(PORT, () => {
