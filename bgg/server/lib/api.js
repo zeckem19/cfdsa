@@ -1,21 +1,24 @@
+const cors = require('cors')
 const express = require('express');
 
 const f = function(app, bggdb) {
 
-	this.router = express.Router();
+	this.subApp = express();
 
-	this.router.use(express.json());
+	this.subApp.use(cors());
+	this.subApp.use(express.json());
 
-	this.router.get('/search', (req, resp) => {
+	this.subApp.get('/search', (req, resp) => {
 
 		const limit = parseInt(req.query.limit) || 20;
 		const offset = parseInt(req.query.offset) || 0;
+
 
 		bggdb.findGameByName([ `%${req.query.q}%`, limit, offset ])
 			.then(result => {
 				if (result.length) {
 					resp.status(200);
-					return resp.json(result.map(v => `/game/${v.gid}`))
+					return resp.json(result.map(v => `${this.subApp.mountpath}/game/${v.gid}`))
 				}
 
 				resp.status(404)
@@ -27,12 +30,15 @@ const f = function(app, bggdb) {
 			})
 	})
 
-	this.router.get('/game/:gid', (req, resp) => {
+	this.subApp.get('/game/:gid', (req, resp) => {
 		bggdb.findGameDetailsByGid([ parseInt(req.params.gid) ])
 			.then(result => {
 				if (result.length) {
 					resp.status(200)
-					return resp.json(result[0]);
+					return resp.json({
+						...result[0],
+						comments: `${req.originalUrl}/comments`
+					});
 				}
 
 				resp.status(404)
@@ -44,7 +50,7 @@ const f = function(app, bggdb) {
 			})
 	})
 
-	this.router.get('/game/:gid/comments', (req, resp) => {
+	this.subApp.get('/game/:gid/comments', (req, resp) => {
 
 		const limit = parseInt(req.query.limit) || 20;
 		const offset = parseInt(req.query.offset) || 0;
@@ -56,11 +62,11 @@ const f = function(app, bggdb) {
 		]).then(result => {
 			resp.status(200)
 			resp.json({
-				gameId: gid,
+				game: `${this.subApp.mountpath}/game/${gid}`,
 				total: result[1][0].comment_cnt,
 				offset: offset,
 				limit: limit,
-				comments: result[0].map(v => `/comment/${v.c_id}`)
+				comments: result[0].map(v => `${this.subApp.mountpath}/comment/${v.c_id}`)
 			})
 		}).catch(err => {
 			resp.status(500)
@@ -68,12 +74,18 @@ const f = function(app, bggdb) {
 		})
 	})
 
-	this.router.get('/comment/:cid', (req, resp) => {
+	this.subApp.get('/comment/:cid', (req, resp) => {
 		bggdb.findCommentsByCid([ req.params.cid ])
 			.then(result => {
 				if (result.length) {
 					resp.status(200);
-					return resp.json(result[0])
+					return resp.json({
+						c_id: result[0].c_id,
+						user: result[0].user,
+						rating: result[0].rating, 
+						c_text: result[0].c_text,
+						game: `${this.subApp.mountpath}/game/${result[0].gid}`
+					})
 				}
 
 				resp.status(404)
@@ -85,12 +97,12 @@ const f = function(app, bggdb) {
 			})
 	})
 
-	this.router.use((req, resp) => {
+	this.subApp.use((req, resp) => {
 		resp.status(404)
 		resp.json({ error: `Resource not found: ${req.originalUrl}` })
 	});
 
-	return (this.router);
+	return (this.subApp);
 }
 
 module.exports = function(app, bggdb) {

@@ -1,17 +1,27 @@
 const { join } = require('path')
+const cliParser = require('command-line-args')
 const mysql = require('mysql')
 const express = require('express')
 const hbs = require('express-handlebars')
 const bodyParser = require('body-parser')
 
-const PORT = parseInt(process.argv[2] || process.env.APP_PORT || 3000)
+const cliOptions = [
+	{ name: 'port', alias: 'p' },
+	{ name: 'html' }, { name: 'api' },
+	{ name: 'db_host' }, { name: 'db_port' },
+	{ name: 'db_user' }, { name: 'db_password' }
+]
+
+const cliValues = cliParser(cliOptions);
+
+const PORT = parseInt(cliValues['port'] || process.env.APP_PORT || 3000)
 const IP = process.env.POD_IP || '0.0.0.0'
 
 const config = {
-	host: process.env.BGG_DB_HOST || '127.0.0.1',
-	port: process.env.BGG_DB_PORT || 3306,
-	user: process.env.BGG_DB_USER || 'root',
-	password: process.env.BGG_DB_PASSWORD || 'changeit',
+	host: cliValues['db_host'] || process.env.BGG_DB_HOST || '127.0.0.1',
+	port: parseInt(cliValues['db_port'] || process.env.BGG_DB_PORT || 3306),
+	user: cliValues['db_user'] || process.env.BGG_DB_USER || 'root',
+	password: cliValues['db_password'] || process.env.BGG_DB_PASSWORD || 'changeit',
 	database: process.env.BGG_DB || 'bgg',
 	connectionLimit: process.env.BGG_DB_CONNECTION_LIMIT || 2
 }
@@ -19,13 +29,18 @@ const bggdb = require('./lib/bggdb')(config)
 
 const app = express();
 
-const html = require('./lib/html')(app, bggdb)
-const json = require('./lib/json')(app, bggdb)
+const api = require('./lib/api')(app, bggdb)
 
-//Handle JSON
+if ('html' in cliValues) {
+	console.info('Mounting \'html\' on /')
+	//HTML can only be mounted on /
+	app.use(require('./lib/html')(app, bggdb))
+}
 
-//app.use(html);
-app.use('/api', json);
+if ('api' in cliValues) {
+	console.info(`Mounting 'api' on ${cliValues['api']? cliValues['api']: '/'}`)
+	app.use(cliValues['api'] || '', require('./lib/api')(app, bggdb));
+}
 
 app.get(/.*/, express.static(join(__dirname, 'public')));
 

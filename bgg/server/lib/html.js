@@ -52,7 +52,8 @@ const f = function(app, bggdb) {
 				layout: false,
 				game: result[0][0],
 				comments: result[1],
-				total_comments: result[2][0].comment_cnt
+				total_comments: result[2][0].comment_cnt,
+				limit: (result[2][0].comment_cnt > limit)? limit: result[2][0].comment_cnt
 			})
 		}).catch(err => {
 			resp.status(500);
