@@ -32,17 +32,42 @@ const app = express();
 const api = require('./lib/api')(app, bggdb)
 
 if ('html' in cliValues) {
-	console.info('Mounting \'html\' on /')
 	//HTML can only be mounted on /
-	app.use(require('./lib/html')(app, bggdb))
+	config.html = '/'
+	config.bootstrap = !!(cliValues['html'] && ('bootstrap' == cliValues['html']));
+	app.use(require('./lib/html')(app, bggdb, config.bootstrap))
+	console.info(`Mounting 'html' (bootstrap: ${config.bootstrap})`)
 }
 
 if ('api' in cliValues) {
 	console.info(`Mounting 'api' on ${cliValues['api']? cliValues['api']: '/'}`)
-	app.use(cliValues['api'] || '', require('./lib/api')(app, bggdb));
+	config.api = cliValues['api'] || '';
+	app.use(config.api, require('./lib/api')(app, bggdb));
 }
 
-app.get(/.*/, express.static(join(__dirname, 'public')));
+app.get('/config', (req, resp) => {
+	resp.status(200).type('application/json')
+	resp.json({
+		host: config.host,
+		port: config.port,
+		user: config.user,
+		password: config.password,
+		database: config.database,
+		connectionLimit: config.connectionLimit,
+		html: config.html || '<not available>',
+		api: config.api || '<not available>',
+		bootstrap: !!config.bootstrap
+	});
+});
+
+app.get('/health', (req, resp) => {
+	resp.status(200).type('application/json')
+	resp.json({ timestamp: (new Date()).toGMTString() });
+})
+
+app.get(/.*/, express.static(
+	join(__dirname, config.bootstrap? 'bootstrap_public': 'public'))
+);
 
 app.use((req, resp) => {
 	resp.status(404);

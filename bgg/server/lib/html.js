@@ -2,13 +2,16 @@ const { join } = require('path');
 const hbs = require('express-handlebars');
 const express = require('express');
 
-const f = function(app, bggdb) {
+const f = function(app, bggdb, bootstrap) {
 
 	this.router = express.Router();
 
 	app.engine('hbs', hbs());
 	app.set('view engine', 'hbs')
-	app.set('views', join(__dirname, '..', 'views'));
+
+	app.set('views', join(__dirname, '..', 
+		bootstrap? 'bootstrap_views': 'views')
+	);
 
 	this.router.get('/search', (req, resp) => {
 
@@ -68,6 +71,6 @@ const f = function(app, bggdb) {
 	return (this.router);
 }
 
-module.exports = function(app, bggdb) {
-	return (new f(app, bggdb));
+module.exports = function(app, bggdb, bootstrap) {
+	return (new f(app, bggdb, !!bootstrap));
 }
