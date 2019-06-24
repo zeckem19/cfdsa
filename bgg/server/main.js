@@ -65,10 +65,6 @@ app.get('/health', (req, resp) => {
 	resp.json({ timestamp: (new Date()).toGMTString() });
 })
 
-app.get(/.*/, express.static(
-	join(__dirname, config.bootstrap? 'bootstrap_public': 'public'))
-);
-
 app.use((req, resp) => {
 	resp.status(404);
 	resp.format({

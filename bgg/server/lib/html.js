@@ -68,6 +68,10 @@ const f = function(app, bggdb, bootstrap) {
 
 	});
 
+	app.get(/.*/, express.static(join(__dirname, '..',
+		bootstrap? 'bootstrap_public': 'public'))
+	);
+
 	return (this.router);
 }
 

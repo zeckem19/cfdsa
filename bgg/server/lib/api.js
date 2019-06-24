@@ -37,7 +37,7 @@ const f = function(app, bggdb) {
 					resp.status(200)
 					return resp.json({
 						...result[0],
-						comments: `${req.originalUrl}/comments`
+						comments: `${this.subApp.mountpath}/game/${req.params.gid}/comments`
 					});
 				}
 

@@ -4,7 +4,7 @@ ENV APP_PORT=3000 APP_DIR=/app  \
 	BGG_DB_HOST='127.0.0.1' BGG_DB_PORT=3306 \
 	BGG_DB_USER=root BGG_DB_PASSWORD=changeit
 
-WORKDIR ${ADD_DIR}
+WORKDIR ${APP_DIR}
 
 ADD main.js .
 ADD package.json .
