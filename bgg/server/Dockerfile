@@ -22,6 +22,6 @@ HEALTHCHECK --interval=60s --start-period=60s \
 
 EXPOSE ${APP_PORT}
 
-ENTRYPOINT [ 'node', 'main.js' ]
+ENTRYPOINT [ "node", "main.js" ]
 
-CMD [ '--html' ]
+CMD [ "--html" ]
