@@ -2,13 +2,16 @@ const { join } = require('path');
 const hbs = require('express-handlebars');
 const express = require('express');
 
-const f = function(app, bggdb) {
+const f = function(app, bggdb, bootstrap) {
 
 	this.router = express.Router();
 
 	app.engine('hbs', hbs());
 	app.set('view engine', 'hbs')
-	app.set('views', join(__dirname, '..', 'views'));
+
+	app.set('views', join(__dirname, '..', 
+		bootstrap? 'bootstrap_views': 'views')
+	);
 
 	this.router.get('/search', (req, resp) => {
 
@@ -52,7 +55,8 @@ const f = function(app, bggdb) {
 				layout: false,
 				game: result[0][0],
 				comments: result[1],
-				total_comments: result[2][0].comment_cnt
+				total_comments: result[2][0].comment_cnt,
+				limit: (result[2][0].comment_cnt > limit)? limit: result[2][0].comment_cnt
 			})
 		}).catch(err => {
 			resp.status(500);
@@ -64,9 +68,13 @@ const f = function(app, bggdb) {
 
 	});
 
+	app.get(/.*/, express.static(join(__dirname, '..',
+		bootstrap? 'bootstrap_public': 'public'))
+	);
+
 	return (this.router);
 }
 
-module.exports = function(app, bggdb) {
-	return (new f(app, bggdb));
+module.exports = function(app, bggdb, bootstrap) {
+	return (new f(app, bggdb, !!bootstrap));
 }
