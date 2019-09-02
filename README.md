@@ -102,9 +102,9 @@ Reference from [Autoscale an application on Kubernetes Cluster](https://develope
 
 ## Installing WebUI
 	
-WebUI in not installed by default. To install Kubernetes' WebUI, go to the [release page](https://github.com/kubernetes/dashboard/releases) and find the latest (or desired version). At the time of writing, the latest version is version 1.10.1. Install with `kubectl apply` 
+WebUI in not installed by default. To install Kubernetes' WebUI, go to the [release page](https://github.com/kubernetes/dashboard/releases) and find the latest (or desired version). Find the latest release version and install according to the `kubectl` command stated in <strong>Installation</strong>. The command will look like the one shown below (for installing v2.0.0-beta4)
 
-`kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml`
+`kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml`
 
 On a terminal, start a proxy server 
 
@@ -112,7 +112,7 @@ On a terminal, start a proxy server
 
 The WebUI can now be accessed with the following URL
 
-[http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/)
+[http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/)
 
 ![WebUI login](https://i.stack.imgur.com/7ZabE.png)
 
