@@ -114,6 +114,7 @@ The WebUI can now be accessed with the following URL
 Create a service account and give it the `cluster-admin` role (or you can create a role with limited privileges).
 
 ```yaml
+---
 apiVersion: v1
 kind: ServiceAccount
 
@@ -182,13 +183,14 @@ Note: `EXTERNAL-IP` will show an external IP address once the load balancer has 
 
 Download the latest version (version 2 only) from the [release](https://github.com/helm/helm/releases) page.
 
-Unpack and add `tiller` and `helm` command to your `PATH`. If your archive has only `tiller` then you have downloaded version 2. Please download version 2.
+Unpack and add `tiller` and `helm` command to your `PATH`. If your archive has only `helm` then you have downloaded version 2. Please download version 2.
 
 ### Creating a Service Account
 
 `helm` installs an agent `tiller` on the cluster. So you need to create a service account for tiller. The following is an typically service account which gives `tiller` the cluster role of `cluster-admin`.
 
 ```yaml
+---
 apiVersion: v1
 kind: ServiceAccount
 
@@ -246,3 +248,78 @@ replicaset.extensions/tiller-deploy-856f79f8d5   1         1         1       16m
 NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
 service/tiller-deploy   ClusterIP   10.245.62.22   <none>        44134/TCP   16m
 ```
+
+## Installing Istio
+
+### Download Istio
+
+Go to Istio [release](https://github.com/istio/istio/releases) page and download the latest version. 
+Unpack the archive. 
+
+Set your `PATH` to include `$ISTIO_HOME/bin` directory. The `bin` directory contains an executable
+called `istioctl` that will be required.
+
+### Install Istio on Kubernetes with Helm
+
+Note: the following installs Istio with Helm v2.
+
+Create `istio-system` namespace. This will hold all Istio resources
+
+`kubectl create ns istio-system`
+
+Start Istio installation by creating Istio's CRDs
+
+`helm install $ISTIO_HOME/install/kubernetes/helm/istio-init --name istio-init --namespace istio-system`
+
+This should create 23 CRDs. On Linux you can very with the following command
+
+`kubectl get crd | grep istio.io | wc -l`
+
+Next is to install a [configuration profile](https://istio.io/docs/setup/kubernetes/additional-setup/config-profiles). In the following we will install the `default` profile.
+
+`helm install $ISTIO_HOME/install/kubernetes/helm/istio --name istio --namespace istio-system`
+
+Verify that Istio has been installed, run the following command
+
+`kubectl get po,deploy,svc -n istio-system`
+
+```
+NAME                                         READY   STATUS      RESTARTS   AGE
+pod/istio-citadel-6fcfb65559-pjnwn           1/1     Running     0          2m1s
+pod/istio-galley-b47995847-j6zs2             1/1     Running     0          2m2s
+pod/istio-ingressgateway-7558f7c4f8-dnp8m    1/1     Running     0          2m1s
+pod/istio-init-crd-10-1.3.0-rc.2-7rps6       0/1     Completed   0          21m
+pod/istio-init-crd-11-1.3.0-rc.2-d4t4z       0/1     Completed   0          21m
+pod/istio-init-crd-12-1.3.0-rc.2-bm2vr       0/1     Completed   0          21m
+pod/istio-pilot-d54cdf967-dmpcs              2/2     Running     0          2m1s
+pod/istio-policy-7495ffbcbb-krnqx            2/2     Running     1          2m1s
+pod/istio-sidecar-injector-d54bdbd78-5q4sk   1/1     Running     0          2m1s
+pod/istio-telemetry-6784b58c65-n6lmx         2/2     Running     1          2m1s
+pod/prometheus-7d7b9f7844-p58k9              1/1     Running     0          2m1s
+
+NAME                                           READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.extensions/istio-citadel            1/1     1            1           2m1s
+deployment.extensions/istio-galley             1/1     1            1           2m2s
+deployment.extensions/istio-ingressgateway     1/1     1            1           2m2s
+deployment.extensions/istio-pilot              1/1     1            1           2m1s
+deployment.extensions/istio-policy             1/1     1            1           2m2s
+deployment.extensions/istio-sidecar-injector   1/1     1            1           2m1s
+deployment.extensions/istio-telemetry          1/1     1            1           2m1s
+deployment.extensions/prometheus               1/1     1            1           2m1s
+
+NAME                             TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                                                                                      AGE
+service/istio-citadel            ClusterIP      10.245.96.120    <none>        8060/TCP,15014/TCP                                                                                                                           2m2s
+service/istio-galley             ClusterIP      10.245.226.64    <none>        443/TCP,15014/TCP,9901/TCP                                                                                                                   2m2s
+service/istio-ingressgateway     LoadBalancer   10.245.199.218   <pending>     15020:32709/TCP,80:31380/TCP,443:31390/TCP,31400:31400/TCP,15029:31627/TCP,15030:31993/TCP,15031:31729/TCP,15032:32137/TCP,15443:31937/TCP   2m2s
+service/istio-pilot              ClusterIP      10.245.50.107    <none>        15010/TCP,15011/TCP,8080/TCP,15014/TCP                                                                                                       2m2s
+service/istio-policy             ClusterIP      10.245.114.166   <none>        9091/TCP,15004/TCP,15014/TCP                                                                                                                 2m2s
+service/istio-sidecar-injector   ClusterIP      10.245.221.91    <none>        443/TCP,15014/TCP                                                                                                                            2m2s
+service/istio-telemetry          ClusterIP      10.245.6.113     <none>        9091/TCP,15004/TCP,15014/TCP,42422/TCP                                                                                                       2m2s
+service/prometheus               ClusterIP      10.245.250.186   <none>        9090/TCP                                                                                                                                     2m2s
+```
+
+Take note of `istio-ingressgateway`. You should see `EXTERNAL-IP` bound to an IP address which you can use to access the cluster. On DigitalOcean, this is bound to a load balancer. Verify that a load balance has been deploy and its IP address matches that of the `istio-ingressgateway`.
+
+See detail instruction [here](https://istio.io/docs/setup/kubernetes/install/helm).
+
+
