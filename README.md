@@ -1,16 +1,9 @@
 # CFDSA - Container for Deployment and Scaling Apps
 
-## Enabling Autoscaling on DigitalOcean
-
 ## Installing Metrics Server
 
 ### Clone metrics-server repository
 `git clone https://github.com/kubernetes-incubator/metrics-server.git`
-
-### Update metrics-server pod
-Edit `metrics-server/deploy/1.8+/metrics-server-deployment.yaml`. 
-Under `containers:` look for the image `k8s.gcr.io/metrics-server-amd64:vx.x.x` where 
-`x.x.x` is the version number. Add the following lines
 
 ### Install metrics-server
 `cd metrics-server/deploy`
@@ -182,3 +175,74 @@ ingress-nginx   LoadBalancer   10.245.17.17   157.230.196.98   80:30077/TCP,443:
 ```
 
 Note: `EXTERNAL-IP` will show an external IP address once the load balancer has been deployed. A `<pending>` indicates that the cloud provider is still provisioning the load balancer. You can verify the that the load balancer has indeed been provisioned by checking it in your cloud console.
+
+## Installing Helm V2
+
+### Download Helm
+
+Download the latest version (version 2 only) from the [release](https://github.com/helm/helm/releases) page.
+
+Unpack and add `tiller` and `helm` command to your `PATH`. If your archive has only `tiller` then you have downloaded version 2. Please download version 2.
+
+### Creating a Service Account
+
+`helm` installs an agent `tiller` on the cluster. So you need to create a service account for tiller. The following is an typically service account which gives `tiller` the cluster role of `cluster-admin`.
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+   name: tiller-sa
+   namespace: kube-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+
+metadata:
+   name: tiller-sa
+   namespace: kube-system
+
+roleRef:
+   apiGroup: rbac.authorization.k8s.io
+   kind: ClusterRole
+   name: cluster-admin
+
+subjects:
+- kind: ServiceAccount
+  name: tiller-sa
+  namespace: kube-system
+
+```
+
+Create `tiller-sa` with the following command assuming that the above is in `tiller-sa.yaml` file.
+
+`kubectl apply -f tiller-sa.yaml`
+
+Check that `tiller-sa` has been created with the following
+
+`kubectl get sa/tiller-sa -n kube-system`
+
+### Installing Helm on Kubernetes
+
+Run the following command to initialize `helm` for the first time
+
+`helm init --servce-account tiller-sa`
+
+Verify that all `helm` is running. Helm installs pods, replicaset and a service
+
+`kubectl get po,rs,svc -l app=helm -n kube-system`
+
+You should see something like the following
+
+```
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/tiller-deploy-856f79f8d5-kmj8l   1/1     Running   0          16m
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.extensions/tiller-deploy-856f79f8d5   1         1         1       16m
+
+NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/tiller-deploy   ClusterIP   10.245.62.22   <none>        44134/TCP   16m
+```
