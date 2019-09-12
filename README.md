@@ -275,9 +275,13 @@ This should create 23 CRDs. On Linux you can very with the following command
 
 `kubectl get crd | grep istio.io | wc -l`
 
-Next is to install a [configuration profile](https://istio.io/docs/setup/kubernetes/additional-setup/config-profiles). In the following we will install the `default` profile.
+Next is to install a [configuration profile](https://istio.io/docs/setup/kubernetes/additional-setup/config-profiles). In the following we will install the `demo` profile. The `demo` profile is 'heavier` but has additional features like tracing and egressgateway.
 
+Deploy the `default` profile.
 `helm install $ISTIO_HOME/install/kubernetes/helm/istio --name istio --namespace istio-system`
+
+Deploy the `demo` profile.
+`helm install $ISTIO_HOME/install/kubernetes/helm/istio --name istio --namespace istio-system --values $ISTIO_HOME/install/kubernetes/helm/istio/values-istio-demo.yaml `
 
 Verify that Istio has been installed, run the following command
 
