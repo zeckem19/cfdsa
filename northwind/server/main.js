@@ -2,6 +2,7 @@ const fs = require('fs')
 
 const { join } = require('path');
 
+const morgan = require('morgan');
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const hbs = require('express-handlebars')
@@ -80,6 +81,7 @@ app.engine('hbs', hbs())
 app.set('view engine', 'hbs')
 app.set('views', join(__dirname, 'views'))
 
+app.use(morgan('tiny'))
 app.use(cors());
 app.use(bodyParser.json());
 

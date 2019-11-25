@@ -1,4 +1,5 @@
 const { join } = require('path')
+const morgan = require('morgan')
 const rp = require('request-promise')
 const hbs = require('express-handlebars')
 const express = require('express')
@@ -34,6 +35,8 @@ const getWeather = (city, resp) => {
 			.end(JSON.stringify(error))
 	})
 }
+
+app.use(morgan('tiny'))
 
 app.get([ '/', '/weather' ], (req, resp) => {
 	getWeather(DEFAULT_CITY, resp)

@@ -1,4 +1,5 @@
 const { join } = require('path')
+const morgan = require('morgan')
 const fortune = require('fortune-cookie')
 const express = require('express')
 const hbs = require('express-handlebars')
@@ -15,6 +16,8 @@ const app = express();
 
 app.engine('hbs', hbs());
 app.set('view engine', 'hbs')
+
+app.use(morgan('tiny'))
 
 app.get(['/', '/index.html', '/fortune'], (req, resp) => {
 	resp.status(200)
