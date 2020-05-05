@@ -72,7 +72,7 @@ The WebUI can now be accessed with the following URL
 
 [http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/)
 
-![WebUI login](https://i.stack.imgur.com/7ZabE.png)
+![WebUI login](https://chukmunnlee.github.io/images/k8s_webui.png)
 
 ### Login to WebUI
 
