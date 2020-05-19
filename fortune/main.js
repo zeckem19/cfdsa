@@ -36,7 +36,7 @@ app.get(['/', '/index.html', '/fortune'], (req, resp) => {
 	})
 })
 
-app.get([ '/health' '/healthz' ], (req, resp) => {
+app.get([ '/health','/healthz' ], (req, resp) => {
 	resp.status(200)
 	resp.type('text/plain')
 	resp.end(`OK ${new Date()}`);

@@ -1,6 +1,7 @@
 FROM node:latest
 
-ENV APP_ROOT=/app APP_PORT=3000
+ENV APP_ROOT=/app 
+ENV APP_PORT=3000
 
 WORKDIR ${APP_ROOT} 
 
@@ -16,8 +17,10 @@ ADD views views
 #install dependencies
 RUN npm install
 
+#health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -s -f http://localhost:${APP_PORT}/health || exit 1
+
 #Run
 EXPOSE ${APP_PORT}
 ENTRYPOINT ["node","main.js"]
-
-CMD ["${APP_PORT}"]
