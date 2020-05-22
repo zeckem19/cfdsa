@@ -1,0 +1,121 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: wordpress-configmap
+    namespace: wordpress
+    labels:
+        app: wordpress
+data:
+    WORDPRESS_DB_HOST: wordpress-mysql-mysql.wordpress.svc.cluster.local
+    WORDPRESS_DB_USER: root
+    WORDPRESS_DB_NAME: wordpressdb
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: wordpress-pvc
+    namespace: wordpress
+    labels:
+        app: wordpress
+spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+        requests:
+            storage: 1Gi
+    storageClassName: do-block-storage
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: wordpress-deploy
+    namespace: wordpress
+    labels:
+        app: wordpress
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: wordpress
+            type: pod
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+    template:
+        metadata:
+            name: wordpress-pod
+            labels:
+            app: wordpress
+            type: pod
+        spec:
+            volumes:
+            - name: wordpress-vol
+            persistentVolumeClaim:
+                claimName: wordpress-pvc
+            containers:
+            - name: wordpress-container
+            image: wordpress
+            imagePullPolicy: IfNotPresent
+            envFrom:
+            - configMapRef:
+                name: wordpress-configmap
+            env:
+            - name: WORDPRESS_DB_PASSWORD
+                valueFrom:
+                secretKeyRef:
+                    name: wpdb-cluster-secret
+                    key: ROOT_PASSWORD
+            ports:
+            - name: wp-con-port
+                containerPort: 80
+            volumeMounts:
+            - name: wordpress-vol
+                mountPath: /var/www/html
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: wordpress-svc
+    namespace: wordpress
+    labels:
+        app: wordpress
+
+spec:
+    type: ClusterIP
+    selector:
+        app: wordpress
+        type: pod
+    ports:
+    - name: wp-svc-port
+        port: 80
+        targetPort: wp-con-port
+
+--- 
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+    name: wordpress-ing
+    namespace: wordpress
+    labels:
+        app: wordpress
+    annotations:
+        nginx.ingress.kubernetes.io/affinity: "cookie"
+        nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+
+spec:
+    rules:
+    - host: wordpress.<loadbalancer-IP>.nip.io
+        http:
+        paths:
+        - path: /
+            backend:
+                serviceName: wordpress-svc
+                servicePort: wp-svc-port
